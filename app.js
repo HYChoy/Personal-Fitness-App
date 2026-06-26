@@ -430,6 +430,8 @@ function renderProgramRow(program) {
 }
 
 function renderExerciseLine(programId, item) {
+  const program = byId(state.programs, programId);
+  const exerciseCount = program?.exercises.length || 0;
   const values = valuesFor(item);
   const alternatives = alternativesFor(item);
   const supersetGroup = supersetName(item.supersetGroup);
@@ -445,7 +447,13 @@ function renderExerciseLine(programId, item) {
         </div>
         ${alternatives.length ? renderAlternativeSwapList(programId, item.id, alternatives) : ""}
       </div>
-      <span class="chip ${item.usesSharedDefaults ? "synced" : "override"}">${item.usesSharedDefaults ? "Synced" : "Override"}</span>
+      <div class="exercise-row-actions">
+        <span class="chip ${item.usesSharedDefaults ? "synced" : "override"}">${item.usesSharedDefaults ? "Synced" : "Override"}</span>
+        <div class="reorder-controls" aria-label="Reorder exercise">
+          <button class="set-edit-button" data-action="move-exercise" data-program-id="${programId}" data-exercise-id="${item.id}" data-direction="up" ${item.order <= 0 ? "disabled" : ""}>Up</button>
+          <button class="set-edit-button" data-action="move-exercise" data-program-id="${programId}" data-exercise-id="${item.id}" data-direction="down" ${item.order >= exerciseCount - 1 ? "disabled" : ""}>Down</button>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -944,6 +952,9 @@ function handleAction(event) {
     case "delete-exercise":
       deleteExercise(target.dataset.programId, target.dataset.exerciseId);
       break;
+    case "move-exercise":
+      moveExercise(target.dataset.programId, target.dataset.exerciseId, target.dataset.direction);
+      break;
     case "add-alternative-row":
       addAlternativeRow(target);
       break;
@@ -1272,6 +1283,25 @@ function deleteExercise(programId, exerciseId) {
       .filter((exercise) => exercise.id !== exerciseId)
       .map((exercise, index) => ({ ...exercise, order: index }));
     draft.modal = null;
+  });
+}
+
+function moveExercise(programId, exerciseId, direction) {
+  setState((draft) => {
+    const program = byId(draft.programs, programId);
+    if (!program) return;
+
+    const exercises = program.exercises.slice().sort((a, b) => a.order - b.order);
+    const currentIndex = exercises.findIndex((exercise) => exercise.id === exerciseId);
+    const offset = direction === "up" ? -1 : 1;
+    const targetIndex = currentIndex + offset;
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= exercises.length) return;
+
+    [exercises[currentIndex], exercises[targetIndex]] = [exercises[targetIndex], exercises[currentIndex]];
+    exercises.forEach((exercise, index) => {
+      exercise.order = index;
+    });
+    program.exercises = exercises;
   });
 }
 

@@ -600,6 +600,23 @@ button {
   min-width: 0;
 }
 
+.exercise-row-actions {
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+
+.reorder-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, auto));
+  gap: 5px;
+}
+
+.reorder-controls .set-edit-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .alternative-swap-list {
   display: grid;
   gap: 6px;
