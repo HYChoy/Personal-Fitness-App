@@ -1,61 +1,40 @@
 const STORAGE_KEY = "liftlog:pwa:v1";
-const UPPER_ONE_PROGRAM_NAME = "Upper 1";
-const UPPER_ONE_EXERCISES = [
+const STARTER_TEMPLATE_VERSION = "push-pull-legs-v1";
+const LEGACY_TEMPLATE_NAMES = ["5x5 Strength", "Upper 1"];
+const STARTER_PROGRAM_TEMPLATES = [
   {
-    name: "Dumbbell Incline Bench Press",
-    setCount: 4,
-    repCount: 8,
-    weight: 50,
-    restSeconds: 90,
-    unit: "lb"
+    name: "Push",
+    notes: "Starter push day.",
+    exercises: [
+      { name: "Barbell bench press", setCount: 3, repCount: 8, weight: 95, restSeconds: 120, unit: "lb" },
+      { name: "Incline dumbbell press", setCount: 3, repCount: 10, weight: 25, restSeconds: 90, unit: "lb" },
+      { name: "Seated dumbbell shoulder press", setCount: 3, repCount: 10, weight: 20, restSeconds: 90, unit: "lb" },
+      { name: "Dumbbell lateral raise", setCount: 3, repCount: 15, weight: 10, restSeconds: 60, unit: "lb", supersetGroup: "A" },
+      { name: "Cable triceps pushdown", setCount: 3, repCount: 12, weight: 30, restSeconds: 60, unit: "lb", supersetGroup: "A" },
+      { name: "Barbell bench press", setCount: 3, repCount: 8, weight: 95, restSeconds: 120, unit: "lb" }
+    ]
   },
   {
-    name: "Dumbbell Incline Bicep Curl",
-    setCount: 3,
-    repCount: 12,
-    weight: 20,
-    restSeconds: 90,
-    unit: "lb"
+    name: "Pull",
+    notes: "Starter pull day.",
+    exercises: [
+      { name: "Lat pulldown", setCount: 3, repCount: 10, weight: 70, restSeconds: 90, unit: "lb" },
+      { name: "Seated cable row", setCount: 3, repCount: 10, weight: 70, restSeconds: 90, unit: "lb" },
+      { name: "One-arm dumbbell row", setCount: 3, repCount: 10, weight: 30, restSeconds: 90, unit: "lb" },
+      { name: "Face pull", setCount: 3, repCount: 15, weight: 20, restSeconds: 60, unit: "lb" },
+      { name: "Dumbbell curl", setCount: 3, repCount: 12, weight: 15, restSeconds: 60, unit: "lb" }
+    ]
   },
   {
-    name: "Dumbbell Seated Shoulder Press",
-    setCount: 3,
-    repCount: 12,
-    weight: 30,
-    restSeconds: 90,
-    unit: "lb"
-  },
-  {
-    name: "Chest Supported Dumbbell Row at 20 Degree",
-    setCount: 3,
-    repCount: 10,
-    weight: 50,
-    restSeconds: 90,
-    unit: "lb"
-  },
-  {
-    name: "Pull up",
-    setCount: 4,
-    repCount: 6,
-    weight: 0,
-    restSeconds: 90,
-    unit: "lb"
-  },
-  {
-    name: "Unilateral Rear Delt Fly",
-    setCount: 3,
-    repCount: 8,
-    weight: 17,
-    restSeconds: 90,
-    unit: "lb"
-  },
-  {
-    name: "Cable Overhead Extension",
-    setCount: 3,
-    repCount: 10,
-    weight: 27.5,
-    restSeconds: 90,
-    unit: "lb"
+    name: "Legs",
+    notes: "Starter leg day.",
+    exercises: [
+      { name: "Goblet squat", setCount: 3, repCount: 10, weight: 40, restSeconds: 120, unit: "lb" },
+      { name: "Romanian deadlift", setCount: 3, repCount: 10, weight: 65, restSeconds: 120, unit: "lb" },
+      { name: "Leg press", setCount: 3, repCount: 12, weight: 140, restSeconds: 120, unit: "lb" },
+      { name: "Lying leg curl", setCount: 3, repCount: 12, weight: 50, restSeconds: 90, unit: "lb" },
+      { name: "Standing calf raise", setCount: 3, repCount: 15, weight: 80, restSeconds: 60, unit: "lb" }
+    ]
   }
 ];
 
@@ -65,35 +44,7 @@ const defaultState = {
     unit: "lb",
     alertMode: "visual-audio"
   },
-  exerciseDefinitions: [
-    {
-      id: crypto.randomUUID(),
-      name: "Squat",
-      setCount: 5,
-      repCount: 5,
-      weight: 225,
-      restSeconds: 180,
-      unit: "lb"
-    },
-    {
-      id: crypto.randomUUID(),
-      name: "Bench Press",
-      setCount: 5,
-      repCount: 5,
-      weight: 155,
-      restSeconds: 150,
-      unit: "lb"
-    },
-    {
-      id: crypto.randomUUID(),
-      name: "Deadlift",
-      setCount: 3,
-      repCount: 5,
-      weight: 275,
-      restSeconds: 180,
-      unit: "lb"
-    }
-  ],
+  exerciseDefinitions: buildExerciseDefinitionsFromTemplates(),
   programs: [],
   activeWorkout: null,
   history: [],
@@ -109,48 +60,55 @@ const defaultState = {
   modal: null
 };
 
-defaultState.programs = [
-  {
-    id: crypto.randomUUID(),
-    name: "5x5 Strength",
-    notes: "Simple compound lifting day.",
-    exercises: [
-      makeProgramExercise(defaultState.exerciseDefinitions[0].id, 0),
-      makeProgramExercise(defaultState.exerciseDefinitions[1].id, 1),
-      makeProgramExercise(defaultState.exerciseDefinitions[2].id, 2)
-    ]
-  }
-];
+defaultState.programs = buildStarterPrograms(defaultState.exerciseDefinitions);
 
 let state = loadState();
-if (ensureBuiltInPrograms(state)) {
+if (ensureStarterTemplates(state)) {
   saveState();
 }
 let timerInterval = null;
 
 const app = document.getElementById("app");
 
-function makeProgramExercise(definitionId, order) {
+function makeProgramExercise(definitionId, order, supersetGroup = "") {
   return {
     id: crypto.randomUUID(),
     definitionId,
     order,
     usesSharedDefaults: true,
     override: null,
-    alternatives: []
+    alternatives: [],
+    supersetGroup
   };
 }
 
-function makeImportedProgramExercise(definition, values, order) {
-  const usesSharedDefaults = valuesMatchDefinition(definition, values);
-  return {
+function buildExerciseDefinitionsFromTemplates() {
+  const definitions = [];
+  STARTER_PROGRAM_TEMPLATES.flatMap((program) => program.exercises).forEach((exercise) => {
+    if (definitions.some((definition) => exerciseKey(definition.name) === exerciseKey(exercise.name))) return;
+    definitions.push({
+      id: crypto.randomUUID(),
+      name: exercise.name,
+      setCount: exercise.setCount,
+      repCount: exercise.repCount,
+      weight: exercise.weight,
+      restSeconds: exercise.restSeconds,
+      unit: exercise.unit
+    });
+  });
+  return definitions;
+}
+
+function buildStarterPrograms(definitions) {
+  return STARTER_PROGRAM_TEMPLATES.map((program) => ({
     id: crypto.randomUUID(),
-    definitionId: definition.id,
-    order,
-    usesSharedDefaults,
-    override: usesSharedDefaults ? null : { ...values },
-    alternatives: []
-  };
+    name: program.name,
+    notes: program.notes,
+    exercises: program.exercises.map((exercise, index) => {
+      const definition = definitions.find((item) => exerciseKey(item.name) === exerciseKey(exercise.name));
+      return makeProgramExercise(definition.id, index, exercise.supersetGroup || "");
+    })
+  }));
 }
 
 function valuesMatchDefinition(definition, values) {
@@ -179,36 +137,31 @@ function loadState() {
   return structuredClone(defaultState);
 }
 
-function ensureBuiltInPrograms(draft) {
+function ensureStarterTemplates(draft) {
   let changed = false;
   draft.exerciseDefinitions ||= [];
   draft.programs ||= [];
   draft.ui ||= {};
-  draft.ui.importedBuiltIns ||= [];
+  draft.ui.templateVersion ||= "";
 
-  if (!draft.ui.importedBuiltIns.includes(UPPER_ONE_PROGRAM_NAME)) {
-    const hasUpperOne = draft.programs.some((program) => exerciseKey(program.name) === exerciseKey(UPPER_ONE_PROGRAM_NAME));
-    if (!hasUpperOne) {
-      const exercises = UPPER_ONE_EXERCISES.map((exercise, index) => {
-        let definition = draft.exerciseDefinitions.find((item) => exerciseKey(item.name) === exerciseKey(exercise.name));
-        if (!definition) {
-          definition = { id: crypto.randomUUID(), ...exercise };
-          draft.exerciseDefinitions.push(definition);
-        }
-        return makeImportedProgramExercise(definition, exercise, index);
-      });
+  if (draft.ui.templateVersion === STARTER_TEMPLATE_VERSION) {
+    return changed;
+  }
 
-      draft.programs.unshift({
-        id: crypto.randomUUID(),
-        name: UPPER_ONE_PROGRAM_NAME,
-        notes: "Upper body dumbbell and pull-up day.",
-        exercises
-      });
-    }
+  const programNames = draft.programs.map((program) => program.name);
+  const hasOnlyLegacyTemplates = draft.programs.length > 0
+    && programNames.every((name) => LEGACY_TEMPLATE_NAMES.some((legacyName) => exerciseKey(legacyName) === exerciseKey(name)))
+    && !draft.history?.length
+    && !draft.activeWorkout;
 
-    draft.ui.importedBuiltIns.push(UPPER_ONE_PROGRAM_NAME);
+  if (!draft.programs.length || hasOnlyLegacyTemplates) {
+    draft.exerciseDefinitions = buildExerciseDefinitionsFromTemplates();
+    draft.programs = buildStarterPrograms(draft.exerciseDefinitions);
     changed = true;
   }
+
+  draft.ui.templateVersion = STARTER_TEMPLATE_VERSION;
+  changed = true;
 
   return changed;
 }
@@ -1022,7 +975,7 @@ function handleAction(event) {
       if (confirm("Reset all LiftLog data on this device?")) {
         localStorage.removeItem(STORAGE_KEY);
         state = structuredClone(defaultState);
-        ensureBuiltInPrograms(state);
+        ensureStarterTemplates(state);
         saveState();
         render();
       }
@@ -1771,7 +1724,7 @@ function importDataFile(input) {
       }
 
       state = normalizeImportedState(imported);
-      ensureBuiltInPrograms(state);
+      ensureStarterTemplates(state);
       saveState();
       render();
       alert("Backup imported.");
