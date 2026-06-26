@@ -303,6 +303,17 @@ function durationForSession(session) {
   return Math.max(0, Math.round((completed - started) / 1000));
 }
 
+function estimatedWorkoutDurationForSets(sets) {
+  return sets.reduce((total, set) => total + 60 + (Number(set.restSeconds) || 0), 0);
+}
+
+function estimatedWorkoutDurationForProgram(program) {
+  return program.exercises.reduce((total, item) => {
+    const values = valuesFor(item);
+    return total + values.setCount * (60 + (Number(values.restSeconds) || 0));
+  }, 0);
+}
+
 function h(strings, ...values) {
   return strings.reduce((out, string, index) => out + string + (values[index] ?? ""), "");
 }
@@ -400,6 +411,7 @@ function renderProgramRow(program) {
           <h2 class="row-title">${escapeHtml(program.name)}</h2>
           <div class="meta">
             <span>${exercises.length} exercises</span>
+            <span>Estimated ${formatDuration(estimatedWorkoutDurationForProgram(program))}</span>
             ${program.notes ? `<span>${escapeHtml(program.notes)}</span>` : ""}
           </div>
         </div>
@@ -469,7 +481,10 @@ function renderWorkout() {
               <div class="row-header">
                 <div>
                   <h3 class="row-title">${escapeHtml(program.name)}</h3>
-                  <div class="meta">${program.exercises.length} exercises</div>
+                  <div class="meta">
+                    <span>${program.exercises.length} exercises</span>
+                    <span>Estimated ${formatDuration(estimatedWorkoutDurationForProgram(program))}</span>
+                  </div>
                 </div>
                 <span class="chip synced">${icon("play")} Start</span>
               </div>
@@ -487,8 +502,13 @@ function renderWorkout() {
   const alternatives = current.alternatives || [];
   const nextOpenIndex = findNextOpenSetIndex(workout, workout.currentIndex);
   const restsAfterCurrent = shouldRestAfterSet(workout, current, nextOpenIndex);
+  const estimateText = formatDuration(estimatedWorkoutDurationForSets(workout.sets));
 
   return h`
+    <section class="estimate-card">
+      <span class="estimate-label">Estimated Duration</span>
+      <strong>${estimateText}</strong>
+    </section>
     <section class="active-set panel">
       <div class="row-header">
         <div>

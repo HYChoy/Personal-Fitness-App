@@ -526,6 +526,28 @@ button {
   gap: 12px;
 }
 
+.estimate-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #cfe0d4;
+  border-radius: var(--radius);
+  background: var(--surface-strong);
+}
+
+.estimate-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.estimate-card strong {
+  color: var(--green-dark);
+  font-size: 1rem;
+}
+
 .set-list {
   display: grid;
   gap: 8px;
