@@ -1,0 +1,19 @@
+{
+  "name": "LiftLog",
+  "short_name": "LiftLog",
+  "description": "Track weightlifting programs, sets, reps, weight, and rest timers.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8faf7",
+  "theme_color": "#1f8f5f",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
