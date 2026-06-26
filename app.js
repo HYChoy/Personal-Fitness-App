@@ -594,6 +594,7 @@ function renderHistory() {
           </button>
           ${isExpanded ? `<div class="set-list history-details">
             <div class="notice">Workout duration: ${durationText}</div>
+            <button class="danger-button" data-action="delete-history-session" data-session-id="${session.id}">Delete Session</button>
             ${session.sets.map((set) => h`
               <div class="set-row done">
                 <span class="set-dot">✓</span>
@@ -614,7 +615,6 @@ function renderHistory() {
                 <span class="chip skipped-chip">Skipped</span>
               </div>
             `).join("")}
-            <button class="danger-button" data-action="delete-history-session" data-session-id="${session.id}">Delete Session</button>
           </div>` : ""}
         </article>
       `; }).join("")}
