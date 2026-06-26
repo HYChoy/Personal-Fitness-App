@@ -45,4 +45,3 @@ In Chrome:
 3. Tap Add to Home Screen or Install app.
 
 Your programs and workout history are stored locally in that browser on that iPhone.
-
