@@ -1,4 +1,4 @@
-const CACHE_NAME = "liftlog-v10";
+const CACHE_NAME = "liftlog-v11";
 const ASSETS = [
   "./",
   "./index.html",

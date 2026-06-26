@@ -614,6 +614,7 @@ function renderHistory() {
                 <span class="chip skipped-chip">Skipped</span>
               </div>
             `).join("")}
+            <button class="danger-button" data-action="delete-history-session" data-session-id="${session.id}">Delete Session</button>
           </div>` : ""}
         </article>
       `; }).join("")}
@@ -943,6 +944,9 @@ function handleAction(event) {
       break;
     case "toggle-history":
       toggleHistory(target.dataset.sessionId);
+      break;
+    case "delete-history-session":
+      deleteHistorySession(target.dataset.sessionId);
       break;
     case "complete-set":
       completeSet();
@@ -1572,6 +1576,15 @@ function toggleHistory(sessionId) {
       expanded.add(sessionId);
     }
     draft.ui.expandedHistoryIds = [...expanded];
+  });
+}
+
+function deleteHistorySession(sessionId) {
+  if (!confirm("Delete this workout session from history?")) return;
+
+  setState((draft) => {
+    draft.history = draft.history.filter((session) => session.id !== sessionId);
+    draft.ui.expandedHistoryIds = draft.ui.expandedHistoryIds.filter((id) => id !== sessionId);
   });
 }
 
